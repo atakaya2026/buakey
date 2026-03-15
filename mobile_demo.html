@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Buakey Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    height: 100vh; background: #6b7280;
+    font-family: 'Noto Sans Thai', sans-serif;
+    display: flex; justify-content: center; align-items: flex-end;
+    overflow: hidden;
+  }
+  #phone-wrap {
+    width: min(100%, 480px); height: 100%; max-height: 900px;
+    display: flex; flex-direction: column; background: #e8e4dc;
+    box-shadow: 0 -5px 40px rgba(0,0,0,0.5); position: relative;
+  }
+  #action-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background: #2d3748; border-bottom: 2px solid #ed8936;
+  }
+  #action-bar .title { color: #ed8936; font-size: 15px; font-weight: bold; }
+  .reset-btn { padding: 5px 12px; background: #4a5568; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+
+  #editor {
+    flex: 1; width: 100%; background: #faf7f2; padding: 20px;
+    font-size: 32px; line-height: 1.6; border: none; outline: none;
+    white-space: pre-wrap; word-break: break-all; overflow-y: auto;
+  }
+  .cursor { color: #ed8936; animation: blink 1s step-end infinite; }
+  @keyframes blink { from, to { opacity: 0; } 50% { opacity: 1; } }
+
+  #keyboard-wrap { position: relative; width: 100%; background: #b5b0a8; }
+  #kbd-image { display: block; width: 100%; height: auto; pointer-events: none; }
+  #kbd-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+  .key-btn {
+    position: absolute; background: transparent; border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 5vw; font-weight: bold; -webkit-tap-highlight-color: transparent;
+  }
+
+  #plus-key-display {
+    font-size: 22px; color: #744210; text-align: center; line-height: 1.1;
+    display: flex; flex-direction: column; justify-content: center;
+    font-weight: 900; transform: translate(-2px, -3px); 
+  }
+</style>
+</head>
+<body>
+
+<div id="phone-wrap">
+  <div id="action-bar">
+    <span class="title">Buakey</span>
+    <button class="reset-btn" onclick="resetAll()">↺ Clear</button>
+  </div>
+  <div id="editor"></div>
+  <div id="keyboard-wrap">
+    <img id="kbd-image" src="images/keyboard.png" alt="Keyboard Base">
+    <div id="kbd-overlay"></div>
+  </div>
+</div>
+
+<script>
+const consonantGroups = {
+  'ค': ['ค','ศ','ฅ'], 'ด': ['ด','ต','ฒ'], 'ว': ['ว','จ','ฐ','ฉ'], 'ก': ['ก','ถ','ฤ'], 'ภ': ['ภ','ฎ','ฏ'],
+  'ล': ['ล','ส'], 'ย': ['ย','ข','ช','ซ','ฃ'], 'น': ['น','บ','ป','ษ'], 'ห': ['ห','ท','ฑ'], 'พ': ['พ','ผ','ฟ','ฝ','ฬ'],
+  'ม': ['ม','ฆ'], 'ง': ['ง'], 'อ': ['อ','ฮ'], 'ร': ['ร','ธ'], 'ญ': ['ญ','ณ','ฌ']
+};
+
+const COLS = [1.05, 12.15, 23.25, 34.35, 45.45, 56.55, 67.65, 78.75, 89.85];
+const ROWS = [3.03, 28.50, 51.80, 76.97];
+const KW = 10.1;
+const KH = 21.0;
+
+let state = { text: '', activeBase: null, activeIdx: 0, lastVowelKey: null, vowelIdx: 0 };
+const editor = document.getElementById('editor');
+const overlay = document.getElementById('kbd-overlay');
+
+function updateDisplay() {
+  editor.innerHTML = state.text + '<span class="cursor">|</span>';
+  editor.scrollTop = editor.scrollHeight;
+  renderKeys();
+}
+
+function handleConsonant(base) {
+  state.activeBase = base;
+  state.activeIdx = 0;
+  state.text += base;
+  state.lastVowelKey = null;
+  updateDisplay();
+}
+
+function handlePlus() {
+  if (!state.activeBase) return;
+  const group = consonantGroups[state.activeBase];
+  if (!group || group.length <= 1) return;
+
+  state.activeIdx = (state.activeIdx + 1) % group.length;
+  state.text = state.text.slice(0, -1) + group[state.activeIdx];
+  updateDisplay();
+}
+
+function handleVowel(keyId, chars) {
+  if (state.lastVowelKey === keyId) {
+    state.vowelIdx = (state.vowelIdx + 1) % chars.length;
+    state.text = state.text.slice(0, -1) + chars[state.vowelIdx];
+  } else {
+    state.lastVowelKey = keyId;
+    state.vowelIdx = 0;
+    state.text += chars[0];
+  }
+  state.activeBase = null;
+  updateDisplay();
+}
+
+function renderKeys() {
+  overlay.innerHTML = '';
+  
+  const layout = [
+    ['ค','ด','ว','ก','ภ', ['ั','็','์'], ['ิ','ึ'], ['ี','ื'], ['่','้','๊']],
+    ['ล','ย','น','ห','พ', ['ไ','ใ','โ'], ['เ','แ'], 'PLUS', ['า','ะ','ำ','าะ']],
+    ['ม','ง','อ','ร','ญ', ['ๆ','ฯ'], ['ู','ุ'], 'USER', 'BS']
+  ];
+
+  layout.forEach((row, rIdx) => {
+    row.forEach((key, cIdx) => {
+      const btn = document.createElement('button');
+      btn.className = 'key-btn';
+      btn.style.left = COLS[cIdx] + '%';
+      btn.style.top = ROWS[rIdx] + '%';
+      btn.style.width = KW + '%';
+      btn.style.height = KH + '%';
+
+      if (typeof key === 'string') {
+        if (key === 'PLUS') {
+          btn.id = 'plus-key-display';
+          if (state.activeBase) {
+            const group = consonantGroups[state.activeBase].slice(1);
+            if (group.length > 0) {
+              if (group.length > 2) {
+                btn.innerHTML = `<div>${group.slice(0,2).join('')}</div><div>${group.slice(2).join('')}</div>`;
+              } else {
+                btn.textContent = group.join('');
+              }
+            } else { btn.textContent = '+'; }
+          } else { btn.textContent = '+'; }
+          btn.onclick = handlePlus;
+        } else if (key === 'BS') {
+          btn.onclick = () => { state.text = state.text.slice(0, -1); updateDisplay(); };
+        } else if (key !== 'USER') {
+          btn.onclick = () => handleConsonant(key);
+        }
+      } else {
+        btn.onclick = () => handleVowel(`row${rIdx}col${cIdx}`, key);
+      }
+      overlay.appendChild(btn);
+    });
+  });
+
+  // 스페이스바
+  const space = document.createElement('button');
+  space.className = 'key-btn';
+  space.style.cssText = `left:23.25%; top:${ROWS[3]}%; width:53.3%; height:20%;`;
+  space.onclick = () => { state.text += ' '; state.activeBase = null; updateDisplay(); };
+  overlay.appendChild(space);
+
+  // 엔터 키 추가 (우측 하단)
+  const enter = document.createElement('button');
+  enter.className = 'key-btn';
+  enter.style.cssText = `left:78.75%; top:${ROWS[3]}%; width:21.2%; height:20%;`;
+  enter.onclick = () => { state.text += '\n'; state.activeBase = null; updateDisplay(); };
+  overlay.appendChild(enter);
+}
+
+function resetAll() {
+  state = { text: '', activeBase: null, activeIdx: 0, lastVowelKey: null, vowelIdx: 0 };
+  updateDisplay();
+}
+
+updateDisplay();
+</script>
+</body>
+</html>
