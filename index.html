@@ -13,10 +13,16 @@
     body { 
         font-family: 'Sarabun', sans-serif; 
         word-break: keep-all; 
+		line-break: loose;
+		overflow-x: hidden; /* 가로 스크롤 방지 */
     }
+	span, p, h3 {
+    word-break: break-word; /* 단어 단위가 아니더라도 폭에 맞춰 줄바꿈 */
+    overflow-wrap: break-word;
+}
 </style>
 </head>
-<body class="bg-gray-50 text-gray-900 leading-relaxed overflow-x-hidden">
+<body class="bg-gray-50 text-gray-900 leading-relaxed">
 
 <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
     <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -47,20 +53,21 @@
 
     <section id="how-to" class="py-20 max-w-6xl mx-auto px-6 border-t border-gray-100">
         <div class="flex flex-col md:flex-row items-center gap-12">
-            <div class="w-full md:w-1/2 min-w-0">
+            <div class="md:w-1/2">
                 <img src="images/how2step.png" alt="ဗျည်းရိုက်နှိပ်ပုံစံ" class="w-full rounded-xl border border-gray-100 shadow-sm">
             </div>
-            <div class="w-full md:w-1/2 min-w-0">
+            <div class="md:w-1/2">
                 <h3 class="text-2xl font-bold mb-6 text-gray-800">วิธีการพิมพ์พยัญชนะ: กดตัวพื้นฐานแล้วเติมขีด</h3>
                 <ul class="space-y-4 text-gray-600">
                     <li class="flex items-start">
                         <span class="text-blue-500 mr-3 mt-1">✓</span>
                         <span>เพียงกดพยัญชนะที่เป็นรูปแบบพื้นฐาน แล้วเติมขีดเพื่อเปลี่ยนเป็นตัวที่ต้องการ</span>
-                    </li>
                     <li class="flex items-start">
-                        <span class="text-blue-500 mr-3 mt-1">✓</span>
-                        <span>เมื่อลองกดปุ่มพยัญชนะพื้นฐานทั้ง 15 ปุ่มทีละปุ่ม คุณจะเห็นตัวอักษรที่สามารถเปลี่ยนได้ด้วยการกดปุ่มสเปซบาร์ (+) ปรากฏขึ้นมา</span>
-                    </li>
+						<span class="text-blue-500 mr-3 mt-1">✓</span>
+						<span class="break-words">
+							เมื่อลองกดปุ่มพยัญชนะพื้นฐานทั้ง 15 ปุ่มทีละปุ่ม คุณจะเห็นตัวอักษรที่สามารถเปลี่ยนได้ด้วยการกดปุ่มสเปซบาร์ (+) ปรากฏขึ้นมา
+						</span>
+					</li>
                 </ul>
             </div>
         </div>
@@ -69,11 +76,13 @@
     <section class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-6">
             <div class="flex flex-col md:flex-row-reverse items-center gap-12">
-                <div class="w-full md:w-1/2 min-w-0">
+                <div class="md:w-1/2">
                     <img src="images/how2vowel.png" alt="သရရိုက်နှိပ်ပုံစံ" class="w-full rounded-xl border border-gray-100 shadow-sm">
                 </div>
-                <div class="w-full md:w-1/2 min-w-0">
-				<h3 class="text-2xl font-bold mb-4 text-gray-800">สระและเครื่องหมายต่าง ๆ จัดวางตามทิศทางการประสมกับพยัญชนะ</h3>
+                <div class="md:w-1/2">
+				<h3 class="text-2xl font-bold mb-4 text-gray-800 break-words">
+					สระและเครื่องหมายต่าง ๆ จัดวางตามทิศทางการประสมกับพยัญชนะ
+				</h3>
 
 				<ul class="space-y-4 text-gray-600">
 					<li class="flex items-start">
