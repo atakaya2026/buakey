@@ -4,17 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Buakey Demo</title>
-<link rel="icon" href="images/logo.png" type="image/png">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-  height: 100%;
-}
+  html, body { height: 100%; }
   body {
-    background: #6b7280;
-    font-family: 'Noto Sans Thai', sans-serif;
-    display: flex; justify-content: center; align-items: flex-end;
-    overflow: hidden;
+    background: #6b7280; font-family: 'Noto Sans Thai', sans-serif;
+    display: flex; justify-content: center; align-items: flex-end; overflow: hidden;
   }
   #phone-wrap {
     width: min(100%, 480px); height: 100%; max-height: 900px;
@@ -36,21 +31,21 @@
   .cursor { color: #ed8936; animation: blink 1s step-end infinite; }
   @keyframes blink { from, to { opacity: 0; } 50% { opacity: 1; } }
 
-  #keyboard-wrap { position: relative; width: 100%; background: #b5b0a8; }
-  #kbd-image { display: block; width: 100%; height: auto; pointer-events: none; }
+  #keyboard-wrap { position: relative; width: 100%; background: #b5b0a8; line-height: 0; }
   #kbd-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
   .key-btn {
     position: absolute; background: transparent; border: none;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    font-size: 5vw; font-weight: bold; -webkit-tap-highlight-color: transparent;
-	touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
   }
-
-  #plus-key-display {
-    font-size: 22px; color: #744210; text-align: center; line-height: 1.1;
-    display: flex; flex-direction: column; justify-content: center;
-    font-weight: 900; transform: translate(-2px, -3px); 
+  
+  #space-display {
+    font-size: 32px; 
+    color: #744210; 
+    font-weight: bold; 
+    pointer-events: none;
+    letter-spacing: -2px;
   }
 </style>
 </head>
@@ -63,7 +58,7 @@
   </div>
   <div id="editor"></div>
   <div id="keyboard-wrap">
-    <img id="kbd-image" src="images/keyboard.png" alt="Keyboard Base">
+    <img src="images/keyboard.png" style="width:100%; display:block; pointer-events:none;">
     <div id="kbd-overlay"></div>
   </div>
 </div>
@@ -75,10 +70,10 @@ const consonantGroups = {
   'ม': ['ม','ฆ'], 'ง': ['ง'], 'อ': ['อ','ฮ'], 'ร': ['ร','ธ'], 'ญ': ['ญ','ณ','ฌ']
 };
 
-const COLS = [1.05, 12.15, 23.25, 34.35, 45.45, 56.55, 67.65, 78.75, 89.85];
-const ROWS = [3.03, 28.50, 51.80, 76.97];
-const KW = 10.1;
-const KH = 21.0;
+const COLS = [1.0, 12.1, 23.2, 34.3, 45.4, 56.5, 67.6, 78.7, 89.8]; 
+const ROWS = [3.0, 28.5, 51.8, 76.9]; 
+const KW = 10.1; 
+const KH = 21.0; 
 
 let state = { text: '', activeBase: null, activeIdx: 0, lastVowelKey: null, vowelIdx: 0 };
 const editor = document.getElementById('editor');
@@ -90,11 +85,12 @@ function updateDisplay() {
   renderKeys();
 }
 
-function handleConsonant(base) {
-  state.activeBase = base;
+function handleConsonant(char) {
+  state.activeBase = char;
   state.activeIdx = 0;
-  state.text += base;
   state.lastVowelKey = null;
+  state.vowelIdx = 0;
+  state.text += char;
   updateDisplay();
 }
 
@@ -102,7 +98,6 @@ function handlePlus() {
   if (!state.activeBase) return;
   const group = consonantGroups[state.activeBase];
   if (!group || group.length <= 1) return;
-
   state.activeIdx = (state.activeIdx + 1) % group.length;
   state.text = state.text.slice(0, -1) + group[state.activeIdx];
   updateDisplay();
@@ -117,7 +112,12 @@ function handleVowel(keyId, chars) {
     state.vowelIdx = 0;
     state.text += chars[0];
   }
-  state.activeBase = null;
+  state.activeBase = null; // 모음 입력 시 자음 가획 상태 해제
+  updateDisplay();
+}
+
+function resetAll() {
+  state = { text: '', activeBase: null, activeIdx: 0, lastVowelKey: null, vowelIdx: 0 };
   updateDisplay();
 }
 
@@ -126,12 +126,13 @@ function renderKeys() {
   
   const layout = [
     ['ค','ด','ว','ก','ภ', ['ั','็','์'], ['ิ','ึ'], ['ี','ื'], ['่','้','๊']],
-    ['ล','ย','น','ห','พ', ['ไ','ใ','โ'], ['เ','แ'], 'PLUS', ['า','ะ','ำ','าะ']],
-    ['ม','ง','อ','ร','ญ', ['ๆ','ฯ'], ['ู','ุ'], 'USER', 'BS']
+    ['ล','ย','น','ห','พ', ['ไ','ใ','โ'], ['เ','แ'], ['า','ำ'], 'ะ'],
+    ['ม','ง','อ','ร','ญ', 'SPACE_STAR', ['ู','ุ'], ['ๆ','ฯ'], 'BS']
   ];
 
   layout.forEach((row, rIdx) => {
     row.forEach((key, cIdx) => {
+      if (!key) return;
       const btn = document.createElement('button');
       btn.className = 'key-btn';
       btn.style.left = COLS[cIdx] + '%';
@@ -139,50 +140,65 @@ function renderKeys() {
       btn.style.width = KW + '%';
       btn.style.height = KH + '%';
 
-      if (typeof key === 'string') {
-        if (key === 'PLUS') {
-          btn.id = 'plus-key-display';
-          if (state.activeBase) {
-            const group = consonantGroups[state.activeBase].slice(1);
-            if (group.length > 0) {
-              if (group.length > 2) {
-                btn.innerHTML = `<div>${group.slice(0,2).join('')}</div><div>${group.slice(2).join('')}</div>`;
-              } else {
-                btn.textContent = group.join('');
-              }
-            } else { btn.textContent = '+'; }
-          } else { btn.textContent = '+'; }
-          btn.onclick = handlePlus;
-        } else if (key === 'BS') {
-          btn.onclick = () => { state.text = state.text.slice(0, -1); updateDisplay(); };
-        } else if (key !== 'USER') {
-          btn.onclick = () => handleConsonant(key);
-        }
+      if (key === 'SPACE_STAR') {
+        btn.onclick = () => { 
+            state.text += ' '; 
+            state.activeBase = null; 
+            state.lastVowelKey = null; 
+            updateDisplay(); 
+        };
+      } else if (key === 'BS') {
+        btn.onclick = () => { 
+            state.text = state.text.slice(0, -1); 
+            state.activeBase = null; 
+            state.lastVowelKey = null; 
+            updateDisplay(); 
+        };
+      } else if (key === 'ะ') {
+        // 'ะ' 단독 처리 (모음으로 인식시켜 자음 상태 해제)
+        btn.onclick = () => handleVowel('key_ะ', ['ะ']);
+      } else if (Array.isArray(key)) {
+        btn.onclick = () => handleVowel(`r${rIdx}c${cIdx}`, key);
       } else {
-        btn.onclick = () => handleVowel(`row${rIdx}col${cIdx}`, key);
+        btn.onclick = () => handleConsonant(key);
       }
       overlay.appendChild(btn);
     });
   });
 
-  // 스페이스바
   const space = document.createElement('button');
   space.className = 'key-btn';
-  space.style.cssText = `left:23.25%; top:${ROWS[3]}%; width:53.3%; height:20%;`;
-  space.onclick = () => { state.text += ' '; state.activeBase = null; updateDisplay(); };
+  space.style.cssText = `left:23.2%; top:${ROWS[3]}%; width:53.3%; height:20%;`;
+  
+  if (state.activeBase) {
+    const group = consonantGroups[state.activeBase].slice(1);
+    if (group.length > 0) {
+      space.innerHTML = `<div id="space-display">${group.join('')}</div>`;
+    } else {
+      space.innerHTML = `<div id="space-display">+</div>`;
+    }
+  } else {
+    space.innerHTML = `<div id="space-display">+</div>`;
+  }
+  
+  space.onclick = handlePlus;
   overlay.appendChild(space);
 
-  // 엔터 키 추가 (우측 하단)
+  const numBtn = document.createElement('button');
+  numBtn.className = 'key-btn';
+  numBtn.style.cssText = `left:1.0%; top:${ROWS[3]}%; width:21.2%; height:20%;`;
+  overlay.appendChild(numBtn);
+
   const enter = document.createElement('button');
   enter.className = 'key-btn';
-  enter.style.cssText = `left:78.75%; top:${ROWS[3]}%; width:21.2%; height:20%;`;
-  enter.onclick = () => { state.text += '\n'; state.activeBase = null; updateDisplay(); };
+  enter.style.cssText = `left:77.5%; top:${ROWS[3]}%; width:21.5%; height:20%;`;
+  enter.onclick = () => { 
+    state.text += '\n'; 
+    state.activeBase = null; 
+    state.lastVowelKey = null;
+    updateDisplay(); 
+  };
   overlay.appendChild(enter);
-}
-
-function resetAll() {
-  state = { text: '', activeBase: null, activeIdx: 0, lastVowelKey: null, vowelIdx: 0 };
-  updateDisplay();
 }
 
 updateDisplay();
