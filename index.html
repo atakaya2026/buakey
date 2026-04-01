@@ -142,15 +142,6 @@
                 <img src="images/pc.png" alt="PC တပ်ဆင်ခြင်း" class="max-h-full w-auto object-contain grayscale hover:grayscale-0 transition duration-500">
             </div>
             <a href="try.html" class="inline-block w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-blue-600 transition text-center">กำลังเตรียมการ</a>
-
-            <!-- 모바일에서 볼 때: PC 안내 오버레이 -->
-            <div id="pc-overlay"
-                 class="absolute inset-0 rounded-3xl flex-col items-center justify-center gap-4 px-6"
-                 style="display:none; background:rgba(255,255,255,0.96); backdrop-filter:blur(4px);">
-                <h4 class="text-xl font-bold text-gray-800">PC บัวคี</h4>
-                <span class="text-5xl">🖥️</span>
-                <p class="text-sm text-gray-500 text-center">ฟีเจอร์นี้ต้องใช้คีย์บอร์ด PC<br>กรุณาเข้าใช้งานผ่านคอมพิวเตอร์</p>
-            </div>
         </div>
 
     </div>
@@ -162,7 +153,6 @@
 (function() {
     var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
     var mobileOverlay = document.getElementById('mobile-overlay');
-    var pcOverlay = document.getElementById('pc-overlay');
     var qrContainer = document.getElementById('qr-container');
 
     if (!isMobile) {
@@ -175,8 +165,6 @@
             colorLight: '#ffffff',
             correctLevel: QRCode.CorrectLevel.M
         });
-    } else {
-        pcOverlay.style.display = 'flex';
     }
 })();
 </script>
